@@ -1,0 +1,1 @@
+A hobby project that aims to create a loan risk estimation model via machine learning and use this model to make automated investment decisions in the Bondora peer-to-peer lending portal.
