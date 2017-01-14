@@ -1,17 +1,13 @@
-from api.api import API
 import logging
+
 
 class Bidder:
 
-    def __init__(self, token, min_investment, max_investment, loan_classifier):
-        self.api = API(token)
+    def __init__(self, min_investment, max_investment, api, loan_classifier):
         self.min_investment = min_investment
         self.max_investment = max_investment
+        self.api = api
         self.loan_classifier = loan_classifier
-
-    def _find_attractive_auctions(self):
-        auctions = self.api.get_auctions()
-        return self.loan_classifier.find_profitable_loans(auctions)
 
     def _construct_bids(self, available_balance, attractive_auctions):
         logging.info("Available balance before bidding: {} EUR".format(available_balance))
@@ -29,7 +25,7 @@ class Bidder:
                     "Amount": bid_amount
                 })
                 available_balance -= bid_amount
-        logging.info("Available balance after bidding: {} EUR".format(available_balance))
+        logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
     def bid(self):
@@ -39,9 +35,10 @@ class Bidder:
             logging.info("Insufficient funds for bidding: {} EUR".format(available_balance))
             return
 
-        attractive_auctions = self._find_attractive_auctions()
+        attractive_auctions = self.loan_classifier.find_attractive_auctions()
         logging.info("Nr of attractive auctions found: {}".format(len(attractive_auctions)))
         bids = self._construct_bids(available_balance, attractive_auctions)
-        logging.info("Nr of bids made: {}".format(len(bids)))
+        logging.info("Nr of bids to be made: {}".format(len(bids)))
         if bids:
             self.api.post_bids(bids)
+        logging.info("Bidding completed successfully")

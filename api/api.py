@@ -28,6 +28,3 @@ class API:
 
     def get_auctions(self):
         return self._get("auctions")
-
-    def get_loans_history(self):
-        return self._get("loandataset")
