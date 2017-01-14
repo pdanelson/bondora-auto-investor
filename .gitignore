@@ -1,7 +1,3 @@
 .idea
-/bin
-/include
-/lib
-/lib64
 bondora-auto-investor.iml
-pyvenv.cfg
+auto-investor.log
