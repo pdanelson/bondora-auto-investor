@@ -15,16 +15,15 @@ class Bidder:
         for auction in attractive_auctions:
             if available_balance < self.min_investment:
                 break
-            elif auction['RemainingAmount'] < self.min_investment or auction['UserBids']:
-                continue
             else:
-                bid_amount = min(auction['RemainingAmount'], self.max_investment, available_balance)
+                bid_amount = min(self.max_investment, available_balance)
                 bids.append({
                     "AuctionId": auction['AuctionId'],
                     "MinAmount": self.min_investment,
                     "Amount": bid_amount
                 })
                 available_balance -= bid_amount
+                logging.info("Bidding {} EUR with an expected return of {}%".format(bid_amount, auction['PredictedReturn'] * 100))
         logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
@@ -36,9 +35,7 @@ class Bidder:
             return
 
         attractive_auctions = self.loan_classifier.find_attractive_auctions()
-        logging.info("Nr of attractive auctions found: {}".format(len(attractive_auctions)))
         bids = self._construct_bids(available_balance, attractive_auctions)
-        logging.info("Nr of bids to be made: {}".format(len(bids)))
         if bids:
             self.api.post_bids(bids)
         logging.info("Bidding completed successfully")
