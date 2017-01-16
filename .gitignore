@@ -1,5 +1,6 @@
 .idea
 *.iml
 *.pyc
-LoanData.csv
-auto-investor.log
+*.model
+*.log
+*.csv

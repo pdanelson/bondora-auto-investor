@@ -23,7 +23,8 @@ class Bidder:
                     "Amount": bid_amount
                 })
                 available_balance -= bid_amount
-                logging.info("Bidding {} EUR with an expected return of {}%".format(bid_amount, auction['PredictedReturn'] * 100))
+                logging.info("Bidding {} EUR into a {} loan with {} rating and {}% interest rate"
+                             .format(bid_amount, auction['CountryCode'], auction['Rating'], auction['Interest']))
         logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
@@ -33,7 +34,6 @@ class Bidder:
         if available_balance < self.min_investment:
             logging.info("Insufficient funds for bidding: {} EUR".format(available_balance))
             return
-
         attractive_auctions = self.loan_classifier.find_attractive_auctions()
         bids = self._construct_bids(available_balance, attractive_auctions)
         if bids:

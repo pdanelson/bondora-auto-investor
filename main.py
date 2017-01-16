@@ -10,7 +10,7 @@ from loan_classifier.model_builder import ModelBuilder
 
 def invest(config):
     api = API(config["AccessToken"])
-    loan_classifier = LoanClassifier(config["ProfitThreshold"], config["ModelPath"], api)
+    loan_classifier = LoanClassifier(config["ConfidenceThreshold"], config["ModelPath"], api)
     bidder = Bidder(config["MinInvestment"], config["MaxInvestment"], api, loan_classifier)
     bidder.bid()
 
@@ -21,7 +21,7 @@ def build_model(config):
 
 
 def main(args):
-    logging.basicConfig(filename="auto-investor.log",
+    logging.basicConfig(filename="bondora.log",
                         format="%(asctime)s %(levelname)s: %(message)s",
                         level=logging.INFO)
     config = ConfigParser()
