@@ -38,7 +38,7 @@ class ModelBuilder:
     def _clean_data(data):
         logging.info("Removing unfinished loans from the loan history")
         data.MaturityDate_Last = data.MaturityDate_Last.astype("datetime64")
-        data = data[data.MaturityDate_Last < datetime.today()]
+        data = data[(data.MaturityDate_Last < datetime.today())]
         logging.info("Removing variables that are not used as predictors")
         input = data[ModelBuilder.PREDICTOR_VARIABLES]
         input[ModelBuilder.NUMERIC_VARIABLES] = input[ModelBuilder.NUMERIC_VARIABLES].astype("float64")
@@ -58,7 +58,7 @@ class ModelBuilder:
         test_target.reset_index(inplace=True, drop=True)
         for confidence_threshold in numpy.arange(0.9, 1, 0.01):
             for min_interest in range(15, 31, 5):
-                logging.info("Model validation results for confidence threshold {:.2} and minimum interest {}%"
+                logging.info("MODEL VALIDATION RESULTS for CONFIDENCE THRESHOLD {:.2} and MINIMUM INTEREST {}%:"
                              .format(confidence_threshold, min_interest))
                 confident_predictions = numpy.where(predictions > confidence_threshold)[0]
                 chosen_loans = test_input.loc[confident_predictions, :]
@@ -66,12 +66,18 @@ class ModelBuilder:
                 chosen_loans["Repaid"] = test_target[confident_predictions]
                 logging.info("Invested into {} loans out of a possible {} ({:.2%})"
                              .format(len(chosen_loans), len(test_input), len(chosen_loans) / len(test_input)))
+                if chosen_loans.empty:
+                    continue
                 # Conservative estimate of losing all principal on a default and paying 20% income tax on interest
                 loan_outcomes = chosen_loans.Interest/100 * 0.8 * chosen_loans.Repaid - (1 - chosen_loans.Repaid)
-                logging.info("In hindsight, {} ({:.2%}) defaulted, resulting in a yearly after tax return of {:.2%}"
+                best_outcomes = sorted(loan_outcomes, reverse=True)[0:50]
+                worst_outcomes = sorted(loan_outcomes)[0:50]
+                logging.info("In hindsight, {} ({:.2%}) defaulted, resulting in:"
                              .format(len(chosen_loans) - sum(chosen_loans.Repaid),
-                                     (len(chosen_loans) - sum(chosen_loans.Repaid)) / len(chosen_loans),
-                                     numpy.mean(loan_outcomes)))
+                                     (len(chosen_loans) - sum(chosen_loans.Repaid)) / len(chosen_loans)))
+                logging.info("Yearly after tax return of {:.2%} overall".format(numpy.mean(loan_outcomes)))
+                logging.info("Yearly after tax return of {:.2%} for best 50 loans".format(numpy.mean(best_outcomes)))
+                logging.info("Yearly after tax return of {:.2%} for worst 50 loans".format(numpy.mean(worst_outcomes)))
 
     def build_model(self):
         logging.info("Starting to build the model")
