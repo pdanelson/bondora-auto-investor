@@ -18,19 +18,19 @@ class Bidder:
             else:
                 bid_amount = min(self.max_investment, available_balance)
                 bids.append({
-                    "AuctionId": auction['AuctionId'],
+                    "AuctionId": auction["AuctionId"],
                     "MinAmount": self.min_investment,
                     "Amount": bid_amount
                 })
                 available_balance -= bid_amount
                 logging.info("Bidding {} EUR into a {} loan with {} rating and {}% interest rate"
-                             .format(bid_amount, auction['CountryCode'], auction['Rating'], auction['Interest']))
+                             .format(bid_amount, auction["CountryCode"], auction["Rating"], auction["Interest"]))
         logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
     def bid(self):
         logging.info("Bidding with min {} EUR and max {} EUR bids".format(self.min_investment, self.max_investment))
-        available_balance = self.api.get_account_balance()['TotalAvailable']
+        available_balance = self.api.get_account_balance()["TotalAvailable"]
         if available_balance < self.min_investment:
             logging.info("Insufficient funds for bidding: {} EUR".format(available_balance))
             return

@@ -10,7 +10,7 @@ from loan_classifier.model_builder import ModelBuilder
 
 def invest(config):
     api = API(config["AccessToken"])
-    loan_classifier = LoanClassifier(config["ConfidenceThreshold"], config["ModelPath"], api)
+    loan_classifier = LoanClassifier(config["ConfidenceThreshold"], config["MinInterest"], config["ModelPath"], api)
     bidder = Bidder(config["MinInvestment"], config["MaxInvestment"], api, loan_classifier)
     bidder.bid()
 
