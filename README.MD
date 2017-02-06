@@ -12,10 +12,10 @@ Then configure the options in bondora.ini (explanations for the variables are co
 schedule the job of building the loan classification model from historical data (for example 3 AM on every first day
 of the month, to update the model with new data).
 ```
-0 3 1 * * python3 /path/to/bondora-auto-investor/main.py --build-model
+0 3 1 * * cd /path/to/bondora-auto-investor && python3 main.py --build-model
 ```
 Finally, set up the Cron job to execute the task of using the built loan classification model
 (so make sure the previous job has been run at least once) to automatically invest into
 loans suggested by the model via the Bondora API (for example, once every minute to constantly poll for new loan auctions).
 ```
-* * * * * python3 /path/to/bondora-auto-investor/main.py --invest
+* * * * * cd /path/to/bondora-auto-investor && python3 main.py --invest

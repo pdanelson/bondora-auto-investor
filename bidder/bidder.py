@@ -24,7 +24,7 @@ class Bidder:
                 })
                 available_balance -= bid_amount
                 logging.info("Bidding {} EUR into a {} loan with {} rating and {}% interest rate"
-                             .format(bid_amount, auction["CountryCode"], auction["Rating"], auction["Interest"]))
+                             .format(bid_amount, auction["Country"], auction["Rating"], auction["Interest"]))
         logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
