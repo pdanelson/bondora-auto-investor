@@ -1,5 +1,4 @@
 import requests
-import json
 
 
 class API:
@@ -15,7 +14,7 @@ class API:
         raise Exception(response.json()["Error"])
 
     def _post(self, url, payload):
-        response = requests.post("{}/{}".format(API.BASE_URL, url), json.dumps(payload), headers=self.headers)
+        response = requests.post("{}/{}".format(API.BASE_URL, url), json=payload, headers=self.headers)
         if response.ok:
             return response.json()["Payload"]
         raise Exception(response.json()["Error"])
@@ -24,7 +23,10 @@ class API:
         return self._get("account/balance")
 
     def post_bids(self, bids):
-        return self._post("bid", bids)
+        return self._post("bid", {"Bids": bids})
 
     def get_auctions(self):
         return self._get("auctions")
+
+    def get_bids(self):
+        return self._get("bids")

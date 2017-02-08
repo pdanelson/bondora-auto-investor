@@ -22,11 +22,16 @@ class LoanClassifier:
         predictions = self.model.predict(xgboost.DMatrix(input))
         return [dict(auction, Confidence=prediction) for auction, prediction in zip(auctions, predictions)]
 
+    def _has_any_prior_bids(self, auction, bids):
+        return any(bid["AuctionId"] == auction["AuctionId"] for bid in bids)
+
     def _is_attractive_auction(self, auction):
         return auction["Confidence"] > self.confidence_threshold and auction["Interest"] > self.min_interest
 
     def find_attractive_auctions(self):
-        available_auctions = [auction for auction in self.api.get_auctions() if auction["UserBids"] < 1]
+        bids = self.api.get_bids()
+        auctions = self.api.get_auctions()
+        available_auctions = [auction for auction in auctions if not self._has_any_prior_bids(auction, bids)]
         logging.info("Nr of all available auctions I have not made bids on: {}".format(len(available_auctions)))
         if not available_auctions:
             return []
