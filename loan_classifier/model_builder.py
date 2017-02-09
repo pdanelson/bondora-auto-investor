@@ -8,20 +8,11 @@ import pandas
 import xgboost
 from sklearn.model_selection import train_test_split
 
+from .data_transformer import DataTransformer
+
 
 class ModelBuilder:
     LOAN_HISTORY_URL = "https://www.bondora.com/marketing/media/LoanData.zip"
-    CATEGORIC_VARIABLES = ["Country", "CreditScoreEeMini", "CreditScoreEsEquifaxRisk", "CreditScoreEsMicroL",
-                           "CreditScoreFiAsiakasTietoRiskGrade", "Education", "EmploymentDurationCurrentEmployer",
-                           "EmploymentStatus", "Gender", "HomeOwnershipType", "LanguageCode",
-                           "MaritalStatus", "MonthlyPaymentDay", "NewCreditCustomer", "OccupationArea", "Rating",
-                           "UseOfLoan", "VerificationType", "NrOfDependants", "WorkExperience"]
-    NUMERIC_VARIABLES = ["Age", "AppliedAmount", "DebtToIncome", "ExpectedLoss", "LiabilitiesTotal", "FreeCash",
-                         "IncomeFromChildSupport", "IncomeFromFamilyAllowance", "IncomeFromLeavePay",
-                         "IncomeFromPension", "IncomeFromPrincipalEmployer", "IncomeFromSocialWelfare", "IncomeOther",
-                         "IncomeTotal", "Interest", "LoanDuration", "LossGivenDefault", "MonthlyPayment",
-                         "ProbabilityOfDefault"]
-    PREDICTOR_VARIABLES = CATEGORIC_VARIABLES + NUMERIC_VARIABLES
 
     def __init__(self, model_path):
         self.model_path = model_path
@@ -30,22 +21,16 @@ class ModelBuilder:
     def _fetch_data():
         logging.info("Downloading loan history from {}".format(ModelBuilder.LOAN_HISTORY_URL))
         system("wget -O LoanData.zip {}".format(ModelBuilder.LOAN_HISTORY_URL))
-        logging.info("Opening the downloaded loan history in LoanData.zip")
         system("unzip -o LoanData.zip && rm LoanData.zip")
         return pandas.read_csv("LoanData.csv")
 
     @staticmethod
-    def _clean_data(data):
+    def _prepare_data(data):
         logging.info("Removing unfinished loans from the loan history")
         data.MaturityDate_Last = data.MaturityDate_Last.astype("datetime64")
         data = data[(data.MaturityDate_Last < datetime.today())]
-        logging.info("Removing variables that are not used as predictors")
-        input = data[ModelBuilder.PREDICTOR_VARIABLES]
-        input[ModelBuilder.NUMERIC_VARIABLES] = input[ModelBuilder.NUMERIC_VARIABLES].astype("float64")
-        input[ModelBuilder.CATEGORIC_VARIABLES] = input[ModelBuilder.CATEGORIC_VARIABLES].apply(lambda var: var.astype("category"))
-        target = pandas.isnull(data.DefaultDate)
-        logging.info("Cleaned loan history data has {} loans and {} predictors".format(len(input), len(ModelBuilder.PREDICTOR_VARIABLES)))
-        return pandas.get_dummies(input), target
+        logging.info("Cleaned loan history data has {} loans".format(len(data)))
+        return DataTransformer().transform(data), pandas.isnull(data.DefaultDate)
 
     @staticmethod
     def _log_model_statistics(model, test_input, test_target):
@@ -82,7 +67,7 @@ class ModelBuilder:
     def build_model(self):
         logging.info("Starting to build the model")
         data = ModelBuilder._fetch_data()
-        input, target = ModelBuilder._clean_data(data)
+        input, target = ModelBuilder._prepare_data(data)
         train_input, test_input, train_target, test_target = train_test_split(input, target, test_size=0.2)
         # Parameters obtained via the script parameter_tuning.py - too computationally expensive to tune every time
         params = {"objective": "binary:logistic",

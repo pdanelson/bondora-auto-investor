@@ -3,7 +3,7 @@ import logging
 import xgboost
 import pandas
 
-from .model_builder import ModelBuilder
+from .data_transformer import DataTransformer
 
 
 class LoanClassifier:
@@ -15,10 +15,7 @@ class LoanClassifier:
         self.api = api
 
     def _assign_confidence_level(self, auctions):
-        input = pandas.DataFrame.from_records(auctions)[ModelBuilder.PREDICTOR_VARIABLES]
-        input[ModelBuilder.NUMERIC_VARIABLES] = input[ModelBuilder.NUMERIC_VARIABLES].astype("float64")
-        input[ModelBuilder.CATEGORIC_VARIABLES] = input[ModelBuilder.CATEGORIC_VARIABLES].apply(lambda var: var.astype("category"))
-        input = pandas.get_dummies(input)
+        input = DataTransformer().transform(pandas.DataFrame.from_records(auctions))
         predictions = self.model.predict(xgboost.DMatrix(input))
         return [dict(auction, Confidence=prediction) for auction, prediction in zip(auctions, predictions)]
 
