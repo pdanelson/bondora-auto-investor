@@ -27,12 +27,15 @@ class LoanClassifier:
 
     def find_attractive_auctions(self):
         bids = self.api.get_bids()
-        auctions = self.api.get_auctions()
+        logging.info("Nr of bids made: {}".format(len(bids)))
+        auctions = [auction for auction in self.api.get_auctions() if auction["Country"] == "EE"]
         available_auctions = [auction for auction in auctions if not self._has_any_prior_bids(auction, bids)]
         logging.info("Nr of all available auctions I have not made bids on: {}".format(len(available_auctions)))
         if not available_auctions:
             return []
         evaluated_auctions = self._assign_confidence_level(available_auctions)
+        for auction in evaluated_auctions:
+            logging.info("Evaluated auction info: {}".format(sorted(auction.items())))
         attractive_auctions = [auction for auction in evaluated_auctions if self._is_attractive_auction(auction)]
         logging.info("Nr of available auctions exceeding the confidence and interest rate thresholds: {}"
                      .format(len(attractive_auctions)))

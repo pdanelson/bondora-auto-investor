@@ -27,8 +27,8 @@ class ModelBuilder:
     @staticmethod
     def _prepare_data(data):
         logging.info("Removing unfinished loans from the loan history")
-        data.MaturityDate_Last = data.MaturityDate_Last.astype("datetime64")
-        data = data[(data.MaturityDate_Last < datetime.today())]
+        data.LoanDate = data.LoanDate.astype("datetime64")
+        data = data[(data.LoanDate + numpy.timedelta64(2, 'Y') < datetime.today()) & (data.Country == "EE")]
         logging.info("Cleaned loan history data has {} loans".format(len(data)))
         return DataTransformer().transform(data), pandas.isnull(data.DefaultDate)
 
@@ -74,10 +74,10 @@ class ModelBuilder:
                   "eval_metric": "auc",
                   "scale_pos_weight": (len(train_target) - sum(train_target))/sum(train_target),
                   "eta": 0.2,
-                  "max_depth": 7,
-                  "min_child_weight": 1}
+                  "max_depth": 8,
+                  "min_child_weight": 1.5}
         logging.info("Training XGBooster model with parameters:\n{}".format(params))
-        model = xgboost.train(params, xgboost.DMatrix(train_input, train_target), num_boost_round=154)
+        model = xgboost.train(params, xgboost.DMatrix(train_input, train_target), num_boost_round=212)
         ModelBuilder._log_model_statistics(model, test_input, test_target)
         model.save_model(self.model_path)
         logging.info("Saved model as: {}".format(self.model_path))
