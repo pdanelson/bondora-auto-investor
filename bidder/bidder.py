@@ -16,15 +16,16 @@ class Bidder:
             if available_balance < self.min_investment:
                 break
             else:
-                bid_amount = min(self.max_investment, available_balance)
+                # Rounded down to nearest multiple of 5
+                amount = min(self.max_investment, available_balance) - (min(self.max_investment, available_balance) % 5)
                 bids.append({
                     "AuctionId": auction["AuctionId"],
                     "MinAmount": self.min_investment,
-                    "Amount": bid_amount
+                    "Amount": amount
                 })
-                available_balance -= bid_amount
+                available_balance -= amount
                 logging.info("Bidding {} EUR into a {} loan with {} rating and {}% interest rate"
-                             .format(bid_amount, auction["Country"], auction["Rating"], auction["Interest"]))
+                             .format(amount, auction["Country"], auction["Rating"], auction["Interest"]))
         logging.info("Estimated balance after bidding: {} EUR".format(available_balance))
         return bids
 
