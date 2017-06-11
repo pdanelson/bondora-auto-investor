@@ -36,11 +36,14 @@ class DataTransformer:
 
     PREDICTOR_VARIABLES = sorted(list(CATEGORICAL_VARIABLES.keys())) + NUMERIC_VARIABLES
 
-    def assign_categories(self, column):
-        return column.astype("category", categories=self.CATEGORICAL_VARIABLES[column.name])
+    @classmethod
+    def assign_categories(cls, column):
+        return column.astype("category", categories=cls.CATEGORICAL_VARIABLES[column.name])
 
-    def transform(self, data):
-        data = data[self.PREDICTOR_VARIABLES]
-        data[self.NUMERIC_VARIABLES] = data[self.NUMERIC_VARIABLES].astype("float64")
-        data[sorted(list(self.CATEGORICAL_VARIABLES.keys()))] = data[sorted(list(self.CATEGORICAL_VARIABLES.keys()))].apply(self.assign_categories)
+    @classmethod
+    def transform(cls, data):
+        data = data[cls.PREDICTOR_VARIABLES]
+        data[cls.NUMERIC_VARIABLES] = data[cls.NUMERIC_VARIABLES].astype("float64")
+        ordered_categorical_keys = sorted(list(cls.CATEGORICAL_VARIABLES.keys()))
+        data[ordered_categorical_keys] = data[ordered_categorical_keys].apply(cls.assign_categories)
         return pandas.get_dummies(data)

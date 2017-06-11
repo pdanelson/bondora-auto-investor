@@ -3,5 +3,5 @@
 *.pyc
 *.model
 *.log
-*.csv
+data
 venv

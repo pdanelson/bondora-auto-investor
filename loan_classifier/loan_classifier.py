@@ -15,7 +15,7 @@ class LoanClassifier:
         self.api = api
 
     def _assign_confidence_level(self, auctions):
-        input = DataTransformer().transform(pandas.DataFrame.from_records(auctions))
+        input = DataTransformer.transform(pandas.DataFrame.from_records(auctions))
         predictions = self.model.predict(xgboost.DMatrix(input))
         return [dict(auction, Confidence=prediction) for auction, prediction in zip(auctions, predictions)]
 

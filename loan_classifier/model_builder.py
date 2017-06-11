@@ -1,11 +1,12 @@
 import logging
-from operator import itemgetter
-from os import system
-from datetime import datetime
-
 import numpy
 import pandas
 import xgboost
+from datetime import datetime
+from operator import itemgetter
+from zipfile import ZipFile
+from io import BytesIO
+from urllib.request import urlopen
 from sklearn.model_selection import train_test_split
 
 from .data_transformer import DataTransformer
@@ -17,20 +18,18 @@ class ModelBuilder:
     def __init__(self, model_path):
         self.model_path = model_path
 
-    @staticmethod
-    def _fetch_data():
-        logging.info("Downloading loan history from {}".format(ModelBuilder.LOAN_HISTORY_URL))
-        system("wget -O LoanData.zip {}".format(ModelBuilder.LOAN_HISTORY_URL))
-        system("unzip -o LoanData.zip && rm LoanData.zip")
-        return pandas.read_csv("LoanData.csv")
+    def _fetch_data(self):
+        logging.info("Downloading loan history from {}".format(self.LOAN_HISTORY_URL))
+        zip_file = ZipFile(BytesIO(urlopen(self.LOAN_HISTORY_URL).read()))
+        csv_file = zip_file.open("LoanData.csv")
+        return pandas.read_csv(csv_file)
 
     @staticmethod
     def _prepare_data(data):
-        logging.info("Removing unfinished loans from the loan history")
         data.LoanDate = data.LoanDate.astype("datetime64")
         data = data[(data.LoanDate + numpy.timedelta64(2, 'Y') < datetime.today()) & (data.Country == "EE")]
         logging.info("Cleaned loan history data has {} loans".format(len(data)))
-        return DataTransformer().transform(data), pandas.isnull(data.DefaultDate)
+        return DataTransformer.transform(data), pandas.isnull(data.DefaultDate)
 
     @staticmethod
     def _log_model_statistics(model, test_input, test_target):
@@ -66,7 +65,7 @@ class ModelBuilder:
 
     def build_model(self):
         logging.info("Starting to build the model")
-        data = ModelBuilder._fetch_data()
+        data = self._fetch_data()
         input, target = ModelBuilder._prepare_data(data)
         train_input, test_input, train_target, test_target = train_test_split(input, target, test_size=0.2)
         # Parameters obtained via the script parameter_tuning.py - too computationally expensive to tune every time

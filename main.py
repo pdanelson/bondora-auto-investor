@@ -35,7 +35,6 @@ def main(args):
         build_model(config["PRODUCTION"])
     else:
         logging.error("Invalid mode - specify either --invest or --build-model")
-    return
 
 if __name__ == "__main__":
     main(argv[1:])
